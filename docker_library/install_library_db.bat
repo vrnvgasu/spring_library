@@ -1,0 +1,1 @@
+docker-compose --file "library_db_container.yml" up --build -d
