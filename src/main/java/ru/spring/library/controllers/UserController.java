@@ -1,5 +1,6 @@
 package ru.spring.library.controllers;
 
+import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.client.HttpClientErrorException;
+import ru.spring.library.dao.BookDAO;
 import ru.spring.library.dao.UserDAO;
+import ru.spring.library.models.Book;
 import ru.spring.library.models.User;
 import ru.spring.library.util.UserCreateValidator;
 import ru.spring.library.util.UserUpdateValidator;
@@ -26,13 +29,16 @@ public class UserController {
 
   private final UserDAO userDAO;
 
+  private final BookDAO bookDAO;
+
   private final UserCreateValidator userCreateValidator;
 
   private final UserUpdateValidator userUpdateValidator;
 
   @Autowired
-  public UserController(UserDAO userDAO, UserCreateValidator userValidator, UserUpdateValidator userUpdateValidator) {
+  public UserController(UserDAO userDAO, BookDAO bookDAO, UserCreateValidator userValidator, UserUpdateValidator userUpdateValidator) {
     this.userDAO = userDAO;
+    this.bookDAO = bookDAO;
     this.userCreateValidator = userValidator;
     this.userUpdateValidator = userUpdateValidator;
   }
@@ -53,6 +59,11 @@ public class UserController {
     }
 
     model.addAttribute("user", optionalUser.get());
+    List<Book> books = bookDAO.getByUser(id);
+
+    if (!books.isEmpty()) {
+      model.addAttribute("books", books);
+    }
 
     return "user/show";
   }

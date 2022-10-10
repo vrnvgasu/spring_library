@@ -1,25 +1,30 @@
 <!DOCTYPE html>
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Страница посетителя</title>
+  <meta charset="UTF-8">
+  <title>Страница посетителя</title>
 </head>
 <body>
 
 <h2>Страница посетителя</h2>
 
-<p th:text="${user.getFullName()} + ', ' + ${user.getBirthday()}" />
-<p>Посетитель пока не взял ни одной книги</p>
+<p th:text="${user.getFullName()} + ', ' + ${user.getBirthday()}"/>
+
+<div th:each="book : ${books}"
+     th:if="${books}">
+  <p th:text="${book.getTitle()} + ', ' + ${book.getAuthor()} + ', ' + ${book.getPublishedAt()}"></p>
+</div>
+<p th:unless="${books}">Посетитель пока не взял ни одной книги</p>
 
 <br>
 <hr>
 <br>
 
 <a th:href="@{/people/{id}/edit(id=${user.getId()})}"
-    th:text="Редактировать"></a>
+   th:text="Редактировать"></a>
 <br>
 <form th:method="DELETE" th:action="@{/people/{id}(id=${user.getId()})}">
-    <input type="submit" value="Удалить">
+  <input type="submit" value="Удалить">
 </form>
 
 <br>

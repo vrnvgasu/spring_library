@@ -53,4 +53,22 @@ public class BookDAO {
     jdbcTemplate.update("DELETE FROM books WHERE id=?", id);
   }
 
+  public void addUser(Long userId, Long BookId) {
+    jdbcTemplate.update("INSERT INTO book_user (user_id, book_id) VALUES(?, ?)",
+        userId, BookId
+    );
+  }
+
+  public void getFree(Long bookId) {
+    jdbcTemplate.update("DELETE FROM book_user WHERE book_id=?", bookId);
+  }
+
+  public List<Book> getByUser(Long userId) {
+    return jdbcTemplate.query("SELECT * FROM books "
+        + "join book_user bu on books.id = bu.book_id "
+            + "where bu.user_id=?",
+        new Object[]{userId},
+        new BookMapper());
+  }
+
 }

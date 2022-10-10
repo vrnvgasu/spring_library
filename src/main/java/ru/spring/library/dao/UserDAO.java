@@ -53,4 +53,15 @@ public class UserDAO {
     jdbcTemplate.update("DELETE FROM users WHERE id=?", id);
   }
 
+  public Optional<User> findByBookId(Long bookId) {
+    return jdbcTemplate.query(
+            "SELECT * FROM users "
+                + "join book_user bu on bu.user_id = users.id "
+                + "where bu.book_id=?",
+            new Object[]{bookId},
+            new UserMapper()
+        )
+        .stream().findAny();
+  }
+
 }

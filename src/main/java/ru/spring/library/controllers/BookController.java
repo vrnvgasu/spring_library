@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.client.HttpClientErrorException;
 import ru.spring.library.dao.BookDAO;
+import ru.spring.library.dao.UserDAO;
 import ru.spring.library.models.Book;
+import ru.spring.library.models.User;
 import ru.spring.library.util.BookValidator;
 
 @Controller
@@ -25,11 +27,14 @@ public class BookController {
 
   private final BookDAO bookDAO;
 
+  private final UserDAO userDAO;
+
   private final BookValidator bookValidator;
 
   @Autowired
-  public BookController(BookDAO userDAO, BookValidator bookValidator) {
+  public BookController(BookDAO userDAO, UserDAO userDAO1, BookValidator bookValidator) {
     this.bookDAO = userDAO;
+    this.userDAO = userDAO1;
     this.bookValidator = bookValidator;
   }
 
@@ -41,14 +46,21 @@ public class BookController {
   }
 
   @GetMapping("/{id}")
-  public String show(@PathVariable("id") Long id, Model model) {
-    Optional<Book> optionalUser = bookDAO.show(id);
+  public String show(@PathVariable("id") Long id, Model model, @ModelAttribute("user") User user) {
+    Optional<Book> optionalBook = bookDAO.show(id);
 
-    if (optionalUser.isEmpty()) {
+    if (optionalBook.isEmpty()) {
       throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Book with id: " + id + " not found");
     }
 
-    model.addAttribute("book", optionalUser.get());
+    model.addAttribute("book", optionalBook.get());
+    Optional<User> bookUser = userDAO.findByBookId(optionalBook.get().getId());
+
+    if (bookUser.isEmpty()) {
+      model.addAttribute("users", userDAO.index());
+    } else {
+      model.addAttribute("bookUser", bookUser.get());
+    }
 
     return "book/show";
   }
@@ -99,11 +111,25 @@ public class BookController {
     return "redirect:/books";
   }
 
+  @PostMapping("/{id}/person")
+  public String addUser(@PathVariable("id") Long id, @ModelAttribute("user") User user) {
+    bookDAO.addUser(user.getId(), id);
+
+    return "redirect:/books/" + id;
+  }
+
   @DeleteMapping("/{id}")
   public String delete(@PathVariable("id") Long id) {
     bookDAO.delete(id);
 
     return "redirect:/books";
+  }
+
+  @DeleteMapping("/{id}/free")
+  public String getFree(@PathVariable("id") Long id) {
+    bookDAO.getFree(id);
+
+    return "redirect:/books/" + id;
   }
 
 }
