@@ -1,52 +1,79 @@
 package ru.spring.library.models;
 
+import java.util.Set;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 
+@Entity
+@Table(name = "users")
 public class User {
 
-  private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-  @NotEmpty(message = "Full name must not be empty")
-  @Pattern(regexp = "[a-zA-ZА-Яа-яЁё]+ [a-zA-ZА-Яа-яЁё]+ [a-zA-ZА-Яа-яЁё]+",
-      message = "FullName must be like Ivan Ivanovich Ivanov")
-  private String fullName;
+	@NotEmpty(message = "Full name must not be empty")
+	@Pattern(regexp = "[a-zA-ZА-Яа-яЁё]+ [a-zA-ZА-Яа-яЁё]+ [a-zA-ZА-Яа-яЁё]+",
+			message = "FullName must be like Ivan Ivanovich Ivanov")
+	@Column(name = "full_name", nullable = false)
+	private String fullName;
 
-  @Min(value = 1901, message = "Birthday must be greater than 1900")
-  private Integer birthday;
+	@Min(value = 1901, message = "Birthday must be greater than 1900")
+	@Column(name = "birthday", nullable = false)
+	private Integer birthday;
 
-  public User(Long id, String fullName, Integer birthday) {
-    this.id = id;
-    this.fullName = fullName;
-    this.birthday = birthday;
-  }
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+	private Set<Book> books;
 
-  public User() {
-  }
+	public User(Long id, String fullName, Integer birthday) {
+		this.id = id;
+		this.fullName = fullName;
+		this.birthday = birthday;
+	}
 
-  public Long getId() {
-    return id;
-  }
+	public User() {
+	}
 
-  public void setId(Long id) {
-    this.id = id;
-  }
+	public Set<Book> getBooks() {
+		return books;
+	}
 
-  public String getFullName() {
-    return fullName;
-  }
+	public void setBooks(Set<Book> books) {
+		this.books = books;
+	}
 
-  public void setFullName(String fullName) {
-    this.fullName = fullName;
-  }
+	public Long getId() {
+		return id;
+	}
 
-  public Integer getBirthday() {
-    return birthday;
-  }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-  public void setBirthday(Integer birthday) {
-    this.birthday = birthday;
-  }
+	public String getFullName() {
+		return fullName;
+	}
+
+	public void setFullName(String fullName) {
+		this.fullName = fullName;
+	}
+
+	public Integer getBirthday() {
+		return birthday;
+	}
+
+	public void setBirthday(Integer birthday) {
+		this.birthday = birthday;
+	}
 
 }
