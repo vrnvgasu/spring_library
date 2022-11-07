@@ -1,7 +1,7 @@
 package ru.spring.library.services;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -86,6 +86,7 @@ public class BookService {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new RuntimeException(".addUser: User with id " + userId + " not found"));
 		book.setUser(user);
+		book.setRentedAt(LocalDate.now());
 		bookRepository.save(book);
 	}
 
@@ -94,6 +95,7 @@ public class BookService {
 		Book book = bookRepository.findById(bookId)
 				.orElseThrow(() -> new RuntimeException(".getFree: Book with id " + bookId + " not found"));
 		book.setUser(null);
+		book.setRentedAt(null);
 		bookRepository.save(book);
 	}
 

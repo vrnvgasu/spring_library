@@ -1,5 +1,7 @@
 package ru.spring.library.models;
 
+import java.time.LocalDate;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -9,12 +11,15 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "books")
 public class Book {
+
+	private static final int DATES_FOR_RENT = 10;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,11 +37,37 @@ public class Book {
 	@Column(name = "published_at", nullable = false)
 	private Integer publishedAt;
 
+	@Column(name = "rented_at")
+	private LocalDate rentedAt;
+
+	@Transient
+	private Boolean expired;
+
 	public Book(Long id, String title, String author, Integer published_at) {
 		this.id = id;
 		this.title = title;
 		this.author = author;
 		this.publishedAt = published_at;
+	}
+
+	public LocalDate getRentedAt() {
+		return rentedAt;
+	}
+
+	public void setRentedAt(LocalDate rentedAt) {
+		this.rentedAt = rentedAt;
+	}
+
+	public Boolean getExpired() {
+		if (Objects.isNull(rentedAt)) {
+			return false;
+		}
+
+		return LocalDate.now().minusDays(DATES_FOR_RENT).isAfter(rentedAt);
+	}
+
+	public void setExpired(Boolean expired) {
+		this.expired = expired;
 	}
 
 	@Column(name = "user_id", insertable = false, updatable = false)
