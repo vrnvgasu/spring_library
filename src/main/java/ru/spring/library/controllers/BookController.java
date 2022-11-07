@@ -143,4 +143,11 @@ public class BookController {
 		return "redirect:/books/" + id;
 	}
 
+	@GetMapping("/search")
+	public String search(@RequestParam(name = "title") String title, Model model) {
+		model.addAttribute("books", bookService.search(title));
+
+		return "book/search";
+	}
+
 }
