@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.HttpClientErrorException;
 import ru.spring.library.models.Book;
 import ru.spring.library.models.User;
@@ -39,8 +40,11 @@ public class BookController {
 	}
 
 	@GetMapping()
-	public String index(Model model) {
-		model.addAttribute("books", bookService.index());
+	public String index(@RequestParam(name = "page", required = false) Integer page,
+			@RequestParam(name = "books_per_page", required = false) Integer booksPerPage,
+			@RequestParam(name = "sort_by_year", required = false) Boolean sortByYear,
+			Model model) {
+		model.addAttribute("books", bookService.index(page, booksPerPage, sortByYear));
 
 		return "book/index";
 	}

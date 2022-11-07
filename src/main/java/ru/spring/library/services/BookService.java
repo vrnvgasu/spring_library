@@ -1,8 +1,11 @@
 package ru.spring.library.services;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.spring.library.models.Book;
@@ -23,8 +26,26 @@ public class BookService {
 		this.userRepository = userRepository;
 	}
 
-	public List<Book> index() {
-		return bookRepository.findAll();
+	public List<Book> index(Integer page, Integer booksPerPage, Boolean sortByYear) {
+		PageRequest pageRequest = null;
+
+		// пагинация
+		if (!Objects.isNull(page) && !Objects.isNull(booksPerPage) && Objects.isNull(sortByYear)) {
+			pageRequest = PageRequest.of(page, booksPerPage, Sort.by("title"));
+			// пагинация + сортировка
+		} else if (!Objects.isNull(page) && !Objects.isNull(booksPerPage) && !Objects.isNull(sortByYear) && sortByYear) {
+			pageRequest = PageRequest.of(page, booksPerPage, Sort.by("publishedAt"));
+			// сортировка
+		} else if ((Objects.isNull(page) || !Objects.isNull(booksPerPage)) && !Objects.isNull(sortByYear) && sortByYear) {
+			return bookRepository.findAllByOrderByPublishedAtAsc();
+		}
+
+		if (!Objects.isNull(pageRequest)) {
+			return bookRepository.findAll(pageRequest).getContent();
+		}
+
+		// вывод по названию
+		return bookRepository.findAllByOrderByTitleAsc();
 	}
 
 	public Optional<Book> show(Long id) {
