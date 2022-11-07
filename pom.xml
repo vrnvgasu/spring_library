@@ -71,10 +71,24 @@
       <version>42.5.0</version>
     </dependency>
 
+<!--    <dependency>-->
+<!--      <groupId>org.springframework</groupId>-->
+<!--      <artifactId>spring-jdbc</artifactId>-->
+<!--      <version>${spring.version}</version>-->
+<!--    </dependency>-->
+
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-jdbc</artifactId>
-      <version>${spring.version}</version>
+      <groupId>org.springframework.data</groupId>
+      <artifactId>spring-data-jpa</artifactId>
+      <version>2.7.5</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+      <version>5.6.12.Final</version>
+      <!--      <version>6.1.4.Final</version> с 5 версией спринга не работет-->
+      <!--      <type>pom</type>-->
     </dependency>
 
   </dependencies>

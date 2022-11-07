@@ -12,7 +12,8 @@
 
 <div th:each="book : ${books}"
      th:if="${books}">
-  <p th:text="${book.getTitle()} + ', ' + ${book.getAuthor()} + ', ' + ${book.getPublishedAt()}"></p>
+  <p th:text="${book.getTitle()} + ', ' + ${book.getAuthor()} + ', ' + ${book.getPublishedAt()}"
+     th:style="${book.getExpired() ? 'color: red' : ''}"></p>
 </div>
 <p th:unless="${books}">Посетитель пока не взял ни одной книги</p>
 

@@ -14,122 +14,140 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.HttpClientErrorException;
-import ru.spring.library.dao.BookDAO;
-import ru.spring.library.dao.UserDAO;
 import ru.spring.library.models.Book;
 import ru.spring.library.models.User;
+import ru.spring.library.services.BookService;
+import ru.spring.library.services.UserService;
 import ru.spring.library.util.BookValidator;
 
 @Controller
 @RequestMapping("/books")
 public class BookController {
 
-  private final BookDAO bookDAO;
+	private final BookService bookService;
 
-  private final UserDAO userDAO;
+	private final UserService userService;
 
-  private final BookValidator bookValidator;
+	private final BookValidator bookValidator;
 
-  @Autowired
-  public BookController(BookDAO userDAO, UserDAO userDAO1, BookValidator bookValidator) {
-    this.bookDAO = userDAO;
-    this.userDAO = userDAO1;
-    this.bookValidator = bookValidator;
-  }
+	@Autowired
+	public BookController(BookService bookService, UserService userService, BookValidator bookValidator) {
+		this.bookService = bookService;
+		this.userService = userService;
+		this.bookValidator = bookValidator;
+	}
 
-  @GetMapping()
-  public String index(Model model) {
-    model.addAttribute("books", bookDAO.index());
+	@GetMapping()
+	public String index(@RequestParam(name = "page", required = false) Integer page,
+			@RequestParam(name = "books_per_page", required = false) Integer booksPerPage,
+			@RequestParam(name = "sort_by_year", required = false) Boolean sortByYear,
+			Model model) {
+		model.addAttribute("books", bookService.index(page, booksPerPage, sortByYear));
 
-    return "book/index";
-  }
+		return "book/index";
+	}
 
-  @GetMapping("/{id}")
-  public String show(@PathVariable("id") Long id, Model model, @ModelAttribute("user") User user) {
-    Optional<Book> optionalBook = bookDAO.show(id);
+	@GetMapping("/{id}")
+	public String show(@PathVariable("id") Long id, Model model, @ModelAttribute("user") User user) {
+		Optional<Book> optionalBook = bookService.show(id);
 
-    if (optionalBook.isEmpty()) {
-      throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Book with id: " + id + " not found");
-    }
+		if (optionalBook.isEmpty()) {
+			throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Book with id: " + id + " not found");
+		}
 
-    model.addAttribute("book", optionalBook.get());
-    Optional<User> bookUser = userDAO.findByBookId(optionalBook.get().getId());
+		Book book = optionalBook.get();
 
-    if (bookUser.isEmpty()) {
-      model.addAttribute("users", userDAO.index());
-    } else {
-      model.addAttribute("bookUser", bookUser.get());
-    }
+		model.addAttribute("book", book);
 
-    return "book/show";
-  }
+		if (book.getUserId() == null) {
+			model.addAttribute("users", userService.index());
+		} else {
+			Optional<User> bookUser = userService.findByBookId(optionalBook.get().getId());
 
-  @GetMapping("/{id}/edit")
-  public String edit(Model model, @PathVariable("id") Long id) {
-    Optional<Book> optionalUser = bookDAO.show(id);
+			if (bookUser.isEmpty()) {
+				model.addAttribute("users", userService.index());
+			} else {
+				model.addAttribute("bookUser", bookUser.get());
+			}
+		}
 
-    if (optionalUser.isEmpty()) {
-      throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Book with id: " + id + " not found");
-    }
+		return "book/show";
+	}
 
-    model.addAttribute("book", optionalUser.get());
+	@GetMapping("/{id}/edit")
+	public String edit(Model model, @PathVariable("id") Long id) {
+		Optional<Book> optionalUser = bookService.show(id);
 
-    return "book/edit";
-  }
+		if (optionalUser.isEmpty()) {
+			throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Book with id: " + id + " not found");
+		}
 
-  @PatchMapping("/{id}")
-  public String update(@ModelAttribute("book") @Valid Book book,
-      BindingResult bindingResult,
-      @PathVariable("id") Long id) {
-    bookValidator.validate(book, bindingResult);
+		model.addAttribute("book", optionalUser.get());
 
-    if (bindingResult.hasErrors()) {
-      return "book/edit";
-    }
+		return "book/edit";
+	}
 
-    bookDAO.update(id, book);
+	@PatchMapping("/{id}")
+	public String update(@ModelAttribute("book") @Valid Book book,
+			BindingResult bindingResult,
+			@PathVariable("id") Long id) {
+		bookValidator.validate(book, bindingResult);
 
-    return "redirect:/books/" + id;
-  }
+		if (bindingResult.hasErrors()) {
+			return "book/edit";
+		}
 
-  @GetMapping("/new")
-  public String add(@ModelAttribute("book") Book book) {
-    return "book/new";
-  }
+		bookService.update(id, book);
 
-  @PostMapping()
-  public String create(@ModelAttribute("book") @Valid Book book, BindingResult bindingResult) {
-    bookValidator.validate(book, bindingResult);
+		return "redirect:/books/" + id;
+	}
 
-    if (bindingResult.hasErrors()) {
-      return "book/new";
-    }
+	@GetMapping("/new")
+	public String add(@ModelAttribute("book") Book book) {
+		return "book/new";
+	}
 
-    bookDAO.save(book);
+	@PostMapping()
+	public String create(@ModelAttribute("book") @Valid Book book, BindingResult bindingResult) {
+		bookValidator.validate(book, bindingResult);
 
-    return "redirect:/books";
-  }
+		if (bindingResult.hasErrors()) {
+			return "book/new";
+		}
 
-  @PostMapping("/{id}/person")
-  public String addUser(@PathVariable("id") Long id, @ModelAttribute("user") User user) {
-    bookDAO.addUser(user.getId(), id);
+		bookService.save(book);
 
-    return "redirect:/books/" + id;
-  }
+		return "redirect:/books";
+	}
 
-  @DeleteMapping("/{id}")
-  public String delete(@PathVariable("id") Long id) {
-    bookDAO.delete(id);
+	@PostMapping("/{id}/person")
+	public String addUser(@PathVariable("id") Long id, @ModelAttribute("user") User user) {
+		bookService.addUser(user.getId(), id);
 
-    return "redirect:/books";
-  }
+		return "redirect:/books/" + id;
+	}
 
-  @DeleteMapping("/{id}/free")
-  public String getFree(@PathVariable("id") Long id) {
-    bookDAO.getFree(id);
+	@DeleteMapping("/{id}")
+	public String delete(@PathVariable("id") Long id) {
+		bookService.delete(id);
 
-    return "redirect:/books/" + id;
-  }
+		return "redirect:/books";
+	}
+
+	@DeleteMapping("/{id}/free")
+	public String getFree(@PathVariable("id") Long id) {
+		bookService.getFree(id);
+
+		return "redirect:/books/" + id;
+	}
+
+	@GetMapping("/search")
+	public String search(@RequestParam(name = "title") String title, Model model) {
+		model.addAttribute("books", bookService.search(title));
+
+		return "book/search";
+	}
 
 }
